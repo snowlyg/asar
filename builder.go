@@ -1,4 +1,4 @@
-package asar // import "layeh.com/asar"
+package asar // import "github.com/jaygooby/goasar"
 
 import (
 	"io"
@@ -16,16 +16,16 @@ type Builder struct {
 
 // Root returns the root Entry.
 func (b *Builder) Root() *Entry {
-	b.init()
-
 	return b.root
 }
 
-func (b *Builder) init() {
+func (b *Builder) init(isDir bool) {
 	if b.root == nil {
 		b.root = &Entry{
 			Flags: FlagDir,
 		}
+	}
+	if isDir {
 		b.current = b.root
 	}
 }
@@ -43,13 +43,13 @@ func (b *Builder) Parent() *Builder {
 }
 
 // AddString adds a new file Entry whose contents are the given string.
-func (b *Builder) AddString(name, contents string, flags Flag) *Builder {
-	return b.Add(name, strings.NewReader(contents), int64(len(contents)), flags)
+func (b *Builder) AddString(name, contents string, flags Flag, isRootFile bool) *Builder {
+	return b.Add(name, strings.NewReader(contents), int64(len(contents)), flags, isRootFile)
 }
 
 // Add adds a new file Entry.
-func (b *Builder) Add(name string, ra io.ReaderAt, size int64, flags Flag) *Builder {
-	b.init()
+func (b *Builder) Add(name string, ra io.ReaderAt, size int64, flags Flag, isRootFile bool) *Builder {
+	b.init(isRootFile)
 
 	child := &Entry{
 		Name:   name,
@@ -66,8 +66,8 @@ func (b *Builder) Add(name string, ra io.ReaderAt, size int64, flags Flag) *Buil
 
 // AddDir adds a new directory Entry. The active Entry is switched to this newly
 // added Entry.
-func (b *Builder) AddDir(name string, flags Flag) *Builder {
-	b.init()
+func (b *Builder) AddDir(name string, flags Flag, isRootDir bool) *Builder {
+	b.init(isRootDir)
 
 	child := &Entry{
 		Name:   name,
