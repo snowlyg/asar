@@ -1,6 +1,8 @@
 package asar // import "github.com/jaygooby/goasar"
 
 import (
+	"bytes"
+	"compress/zlib"
 	"encoding/binary"
 	"errors"
 	"io"
@@ -30,7 +32,17 @@ func Decode(ra io.ReaderAt) (*Entry, error) {
 		if dataSize != 4 {
 			return nil, errMalformed
 		}
-		headerSize = binary.LittleEndian.Uint32(buff[4:8])
+		bf := buff[4:8]
+		headerSize = binary.LittleEndian.Uint32(bf)
+
+		if Encrypt {
+			var in bytes.Buffer
+			w := zlib.NewWriter(&in)
+			w.Write(buff[4:8])
+			w.Close()
+			bf = in.Bytes()
+			headerSize = headerSize + 2333
+		}
 	}
 
 	// [pickle object header (4 bytes)]

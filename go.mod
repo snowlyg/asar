@@ -1,3 +1,3 @@
-module jaygooby/goasar
+module github.com/snowlyg/goasar
 
 go 1.14

@@ -25,6 +25,8 @@ const (
 	FlagUnpacked
 )
 
+var Encrypt bool
+
 // Entry is a file or a folder in an ASAR archive.
 type Entry struct {
 	Name     string

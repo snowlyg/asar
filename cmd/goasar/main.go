@@ -3,8 +3,8 @@ package main // import "jaygooby/goasar/cmd/goasar"
 import (
 	"flag"
 	"fmt"
+	asar "github.com/snowlyg/goasar"
 	"io/ioutil"
-	"jaygooby/goasar"
 	"os"
 	"path/filepath"
 	"strings"
@@ -34,6 +34,10 @@ func check(e error) {
 	}
 }
 
+func getPath(str string) string {
+	return strings.Replace(str, "\\", "/", -1)
+}
+
 func main() {
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "usage: %s [options] [command]\n", os.Args[0])
@@ -45,6 +49,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "    extract contents of asar archive to directory\n")
 		fmt.Fprintf(os.Stderr, "  p|pack <archive> <dir>\n")
 		fmt.Fprintf(os.Stderr, "    create asar archive from directory\n")
+		fmt.Fprintf(os.Stderr, "    -e to encrypt \n")
 		fmt.Fprintf(os.Stderr, "\n")
 		flag.PrintDefaults()
 	}
@@ -57,7 +62,8 @@ func main() {
 
 	switch command := flag.Arg(0); command {
 	case "l", "list":
-		file := openFile(flag.Arg(1))
+		path := getPath(flag.Arg(1))
+		file := openFile(path)
 		defer file.Close()
 		root := openAsar(file)
 		root.Walk(func(path string, _ os.FileInfo, _ error) error {
@@ -66,7 +72,7 @@ func main() {
 		})
 
 	case "x", "extract":
-		file := openFile(flag.Arg(1))
+		file := openFile(getPath(flag.Arg(1)))
 		defer file.Close()
 		root := openAsar(file)
 		if flag.NArg() < 3 {
@@ -74,7 +80,7 @@ func main() {
 			os.Exit(1)
 		}
 
-		target := flag.Arg(2)
+		target := getPath(flag.Arg(2))
 
 		err := root.Walk(func(path string, info os.FileInfo, _ error) error {
 			entry := info.Sys().(*asar.Entry)
@@ -115,17 +121,21 @@ func main() {
 		}
 
 	case "p", "pack":
-		if flag.NArg() < 3 {
+		if flag.NArg() < 4 {
 			flag.Usage()
 			os.Exit(1)
 		}
 
-		asarFilename := flag.Arg(1)
+		asarFilename := getPath(flag.Arg(2))
 		asarArchive, err := os.Create(asarFilename)
 		check(err)
 		defer asarArchive.Close()
 
-		dir := flag.Arg(2)
+		if flag.Arg(3) == "-e" {
+			asar.Encrypt = true
+		}
+
+		dir := getPath(flag.Arg(1))
 		entries := asar.Builder{}
 		isRootFile := false
 		isRootDir := true
