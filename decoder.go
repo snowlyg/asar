@@ -41,7 +41,6 @@ func Decode(ra io.ReaderAt) (*Entry, error) {
 			w.Write(buff[4:8])
 			w.Close()
 			bf = in.Bytes()
-			headerSize = headerSize
 		}
 	}
 
