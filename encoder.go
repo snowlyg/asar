@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"io"
 	"strconv"
+
+	"github.com/snowlyg/asar/czlib"
 )
 
 type entryEncoder struct {
@@ -97,23 +99,30 @@ func (e *Entry) EncodeTo(w io.Writer) (n int64, err error) {
 		return
 	}
 
-	length := encoder.Header.Len() - 16
-	var newLen int
-	{
-		var padding [3]byte
-		if mod := length % 4; mod != 0 {
-			encoder.Header.Write(padding[:4-mod])
-		}
-		newLen = encoder.Header.Len() - 16
+	length := encoder.Header.Len() - 16 + 2333
+	header := encoder.Header.Bytes()
+	binary.LittleEndian.PutUint32(header, uint32(length))
+
+	//var newLen int
+	//{
+	//	var padding [3]byte
+	//	if mod := length % 4; mod != 0 {
+	//		encoder.Header.Write(padding[:4-mod])
+	//	}
+	//	newLen = encoder.Header.Len() - 16
+	//}
+
+	//header := encoder.Header.Bytes()
+	//binary.LittleEndian.PutUint32(header[:4], 4)
+	//binary.LittleEndian.PutUint32(header[4:8], 8+uint32(newLen))
+	//binary.LittleEndian.PutUint32(header[8:12], 4+uint32(newLen))
+	//binary.LittleEndian.PutUint32(header[12:16], uint32(length))
+	zw, err := czlib.NewWriterLevel2(w, 1, 8, -9, 8, 0)
+	if err != nil {
+		return
 	}
 
-	header := encoder.Header.Bytes()
-	binary.LittleEndian.PutUint32(header[:4], 4)
-	binary.LittleEndian.PutUint32(header[4:8], 8+uint32(newLen))
-	binary.LittleEndian.PutUint32(header[8:12], 4+uint32(newLen))
-	binary.LittleEndian.PutUint32(header[12:16], uint32(length))
-
-	n, err = encoder.Header.WriteTo(w)
+	n, err = encoder.Header.WriteTo(zw)
 	if err != nil {
 		return
 	}
@@ -121,6 +130,7 @@ func (e *Entry) EncodeTo(w io.Writer) (n int64, err error) {
 	for _, chunk := range encoder.Contents {
 		var written int64
 		written, err = io.Copy(w, chunk)
+
 		n += written
 		if err != nil {
 			return

@@ -3,7 +3,7 @@ package main // import "jaygooby/goasar/cmd/goasar"
 import (
 	"flag"
 	"fmt"
-	asar "github.com/snowlyg/goasar"
+	asar "github.com/snowlyg/asar"
 	"io/ioutil"
 	"os"
 	"path/filepath"
