@@ -1,9 +1,9 @@
-package main // import "jaygooby/goasar/cmd/goasar"
+package main
 
 import (
 	"flag"
 	"fmt"
-	asar "github.com/snowlyg/asar"
+	"github.com/snowlyg/goasar"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -121,6 +121,7 @@ func main() {
 		}
 
 	case "p", "pack":
+
 		if flag.NArg() < 4 {
 			flag.Usage()
 			os.Exit(1)
