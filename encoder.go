@@ -118,7 +118,7 @@ func (e *Entry) EncodeTo(w io.Writer) (n int64, err error) {
 	l := encoder.Header.Len() + 2333
 
 	out := bytes.NewBuffer(make([]byte, l))
-	out.WriteString(in.String())
+	out.Write(in.Bytes())
 
 	//header := out.Bytes()
 	//
