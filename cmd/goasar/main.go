@@ -1,13 +1,16 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
-	"github.com/snowlyg/goasar"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/snowlyg/czlib"
+	"github.com/snowlyg/goasar"
 )
 
 func openAsar(file *os.File) *asar.Entry {
@@ -122,7 +125,7 @@ func main() {
 
 	case "p", "pack":
 
-		if flag.NArg() < 4 {
+		if flag.NArg() < 3 {
 			flag.Usage()
 			os.Exit(1)
 		}
@@ -131,10 +134,6 @@ func main() {
 		asarArchive, err := os.Create(asarFilename)
 		check(err)
 		defer asarArchive.Close()
-
-		if flag.Arg(3) == "-e" {
-			asar.Encrypt = true
-		}
 
 		dir := getPath(flag.Arg(1))
 		entries := asar.Builder{}
@@ -161,7 +160,15 @@ func main() {
 				if err != nil {
 					return err
 				}
-				entries.AddString(info.Name(), string(b), asar.FlagNone, isRootFile)
+
+				// 压缩内容
+				var in bytes.Buffer
+				// czlib.NewWriterLevel2(&in, Z_DEFAULT_COMPRESSION,Z_DEFLATED, -15,8,Z_DEFAULT_STRATEGY)
+				w, _ := czlib.NewWriterLevel2(&in, -1, 8, -15, 8, 0)
+				w.Write(b)
+				w.Close()
+
+				entries.AddString(info.Name(), in.String(), asar.FlagNone, isRootFile)
 			}
 
 			return nil

@@ -2,7 +2,8 @@
 
 Package asar reads and writes ASAR (Atom-Shell Archive) archives
 
-    import (
+   ```go
+ import (
         "os"
 
         "layeh.com/asar"
@@ -26,6 +27,15 @@ Package asar reads and writes ASAR (Atom-Shell Archive) archives
     }
     // print contents of test/file.txt in sample.asar
     fmt.Println(test.String())
+```
+
+####
+```shell script
+    goasar l extractthis.asar
+    goasar x extractthis.asar
+    goasar p  extractthis  test.asar
+
+```
 
 ## License
 

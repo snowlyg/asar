@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/json"
+	"github.com/snowlyg/czlib"
 	"io"
 	"strconv"
 )
@@ -114,7 +115,14 @@ func (e *Entry) EncodeTo(w io.Writer) (n int64, err error) {
 	binary.LittleEndian.PutUint32(header[8:12], 4+uint32(newLen))
 	binary.LittleEndian.PutUint32(header[12:16], uint32(length))
 
-	n, err = encoder.Header.WriteTo(w)
+	// 压缩内容
+	var in bytes.Buffer
+	// czlib.NewWriterLevel2(&in, Z_DEFAULT_COMPRESSION,Z_DEFLATED, -15,8,Z_DEFAULT_STRATEGY)
+	nw, _ := czlib.NewWriterLevel2(&in, -1, 8, -15, 8, 0)
+	nw.Write(encoder.Header.Bytes())
+	nw.Close()
+
+	n, err = in.WriteTo(w)
 	if err != nil {
 		return
 	}
