@@ -163,8 +163,8 @@ func main() {
 
 				// 压缩内容
 				var in bytes.Buffer
-				// czlib.NewWriterLevel2(&in, Z_DEFAULT_COMPRESSION,Z_DEFLATED, -15,8,Z_DEFAULT_STRATEGY)
-				w, _ := czlib.NewWriterLevel2(&in, -1, 8, -15, 8, 0)
+				// czlib.NewWriterLevel2(&in, Z_DEFAULT_COMPRESSION,Z_DEFLATED, -1,8,Z_DEFAULT_STRATEGY)
+				w, _ := czlib.NewWriterLevel2(&in, -1, 8, -9, 8, 0)
 				w.Write(b)
 				w.Close()
 

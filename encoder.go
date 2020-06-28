@@ -2,7 +2,6 @@ package asar // import "github.com/jaygooby/goasar"
 
 import (
 	"bytes"
-	"encoding/binary"
 	"encoding/json"
 	"github.com/snowlyg/czlib"
 	"io"
@@ -98,31 +97,37 @@ func (e *Entry) EncodeTo(w io.Writer) (n int64, err error) {
 		return
 	}
 
-	length := encoder.Header.Len() - 16
+	//length := encoder.Header.Len() - 16
 
-	var newLen int
-	{
-		var padding [3]byte
-		if mod := length % 4; mod != 0 {
-			encoder.Header.Write(padding[:4-mod])
-		}
-		newLen = encoder.Header.Len() - 16
-	}
-
-	header := encoder.Header.Bytes()
-	binary.LittleEndian.PutUint32(header[:4], 4)
-	binary.LittleEndian.PutUint32(header[4:8], 8+uint32(newLen))
-	binary.LittleEndian.PutUint32(header[8:12], 4+uint32(newLen))
-	binary.LittleEndian.PutUint32(header[12:16], uint32(length))
+	//var newLen int
+	//{
+	//	var padding [3]byte
+	//	if mod := length % 4; mod != 0 {
+	//		encoder.Header.Write(padding[:4-mod])
+	//	}
+	//	newLen = encoder.Header.Len() - 16
+	//}
 
 	// 压缩内容
 	var in bytes.Buffer
-	// czlib.NewWriterLevel2(&in, Z_DEFAULT_COMPRESSION,Z_DEFLATED, -15,8,Z_DEFAULT_STRATEGY)
-	nw, _ := czlib.NewWriterLevel2(&in, -1, 8, -15, 8, 0)
+	// czlib.NewWriterLevel2(&in, Z_DEFAULT_COMPRESSION,Z_DEFLATED, -1,8,Z_DEFAULT_STRATEGY)
+	nw, _ := czlib.NewWriterLevel2(&in, -1, 8, -9, 8, 0)
 	nw.Write(encoder.Header.Bytes())
 	nw.Close()
 
-	n, err = in.WriteTo(w)
+	l := encoder.Header.Len() + 2333
+
+	out := bytes.NewBuffer(make([]byte, l))
+	out.WriteString(in.String())
+
+	//header := out.Bytes()
+	//
+	//binary.LittleEndian.PutUint32(header[:4], 4)
+	//binary.LittleEndian.PutUint32(header[4:8], 8+uint32(newLen))
+	//binary.LittleEndian.PutUint32(header[8:12], 4+uint32(newLen))
+	//binary.LittleEndian.PutUint32(header[12:16], uint32(length))
+
+	n, err = out.WriteTo(w)
 	if err != nil {
 		return
 	}
